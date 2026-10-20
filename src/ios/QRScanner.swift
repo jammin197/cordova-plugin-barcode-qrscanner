@@ -1,6 +1,10 @@
 import Foundation
 import AVFoundation
 
+#if canImport(Cordova)
+import Cordova
+#endif
+
 @objc(QRScanner)
 class QRScanner : CDVPlugin, AVCaptureMetadataOutputObjectsDelegate {
     
