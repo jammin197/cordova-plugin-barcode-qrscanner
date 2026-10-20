@@ -242,10 +242,20 @@ class QRScanner : CDVPlugin, AVCaptureMetadataOutputObjectsDelegate {
             return
         }
         let found = metadataObjects[0] as! AVMetadataMachineReadableCodeObject
-        if (found.type == AVMetadataObject.ObjectType.qr || found.type == AVMetadataObject.ObjectType.code39 || found.type == AVMetadataObject.ObjectType.code39Mod43 || found.type == AVMetadataObject.ObjectType.code93 || found.type == AVMetadataObject.ObjectType.code128) && found.stringValue != nil {
+
+        if (found.type == AVMetadataObject.ObjectType.qr || 
+            found.type == AVMetadataObject.ObjectType.code39 || 
+            found.type == AVMetadataObject.ObjectType.code39Mod43 || 
+            found.type == AVMetadataObject.ObjectType.code93 || 
+            found.type == AVMetadataObject.ObjectType.code128),
+          let value = found.stringValue,
+          let callbackId = nextScanningCommand?.callbackId {
             scanning = false
-            let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: found.stringValue)
-            commandDelegate!.send(pluginResult, callbackId: nextScanningCommand?.callbackId!)
+            let pluginResult = CDVPluginResult(
+                status: CDVCommandStatus_OK,
+                messageAs: value
+            )
+            commandDelegate!.send(pluginResult, callbackId: callbackId)
             nextScanningCommand = nil
         }
     }
