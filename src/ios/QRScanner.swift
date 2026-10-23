@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import UIKit
 
 #if canImport(Cordova)
 import Cordova
@@ -22,19 +23,33 @@ class QRScanner : CDVPlugin, AVCaptureMetadataOutputObjectsDelegate {
             case UIInterfaceOrientation.landscapeRight:
                 return AVCaptureVideoOrientation.landscapeRight;
             default:
-                return AVCaptureVideoOrientation.portraitUpsideDown;
+                return AVCaptureVideoOrientation.portrait;
             }
         }
 
         override func layoutSubviews() {
-            super.layoutSubviews();
-            if let sublayers = self.layer.sublayers {
-                for layer in sublayers {
-                    layer.frame = self.bounds;
-                }
+            super.layoutSubviews()
+
+            guard let previewLayer = videoPreviewLayer else {
+                return
             }
-            
-            self.videoPreviewLayer?.connection?.videoOrientation = interfaceOrientationToVideoOrientation(UIApplication.shared.statusBarOrientation);
+
+            previewLayer.frame = bounds
+
+            guard let connection = previewLayer.connection,
+                connection.isVideoOrientationSupported else {
+                return
+            }
+
+            let orientation: UIInterfaceOrientation
+
+            if #available(iOS 13.0, *) {
+                orientation = window?.windowScene?.interfaceOrientation ?? .portrait
+            } else {
+                orientation = UIApplication.shared.statusBarOrientation
+            }
+
+            connection.videoOrientation = interfaceOrientationToVideoOrientation(orientation)
         }
         
         
@@ -43,6 +58,9 @@ class QRScanner : CDVPlugin, AVCaptureMetadataOutputObjectsDelegate {
             previewLayer!.frame = self.bounds
             self.layer.addSublayer(previewLayer!)
             self.videoPreviewLayer = previewLayer;
+            
+            self.setNeedsLayout()
+            self.layoutIfNeeded()
         }
         
         func removePreviewLayer() {
